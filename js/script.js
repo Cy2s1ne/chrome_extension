@@ -37,6 +37,11 @@ const searchLogo = document.getElementById('search-logo');
 const switcherBtn = document.getElementById('switcher-btn');
 const currentEngineIcon = document.getElementById('current-engine-icon');
 const engineMenu = document.getElementById('engine-menu');
+const timeDisplay = document.getElementById('time-display');
+const settingsBtn = document.getElementById('settings-btn');
+const clearBgBtn = document.getElementById('clear-bg-btn');
+const bgUpload = document.getElementById('bg-upload');
+const logoContainer = document.querySelector('.logo-container');
 
 // 初始化
 function init() {
@@ -46,8 +51,56 @@ function init() {
         setEngine(index);
     });
 
+    // 加载背景图片
+    loadBackground();
+
     renderMenu();
     setupEventListeners();
+    
+    // 启动时间更新
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // 页面加载动画
+    setTimeout(() => {
+        document.body.classList.add('loaded');
+    }, 50);
+}
+
+function loadBackground() {
+    chrome.storage.local.get(['backgroundImage'], function(result) {
+        if (result.backgroundImage) {
+            document.body.style.backgroundImage = `url(${result.backgroundImage})`;
+            enableCustomBackgroundMode(true);
+        } else {
+            document.body.style.backgroundImage = 'none';
+            enableCustomBackgroundMode(false);
+        }
+    });
+}
+
+function enableCustomBackgroundMode(enabled) {
+    if (enabled) {
+        logoContainer.style.display = 'none';
+        timeDisplay.style.display = 'block';
+        clearBgBtn.style.display = 'block'; // 显示清除按钮
+        document.body.classList.add('custom-bg');
+        // 调整文字颜色为白色以适应背景
+        document.body.style.color = '#fff';
+    } else {
+        logoContainer.style.display = 'block';
+        timeDisplay.style.display = 'none';
+        clearBgBtn.style.display = 'none'; // 隐藏清除按钮
+        document.body.classList.remove('custom-bg');
+        document.body.style.color = ''; // 恢复默认
+    }
+}
+
+function updateTime() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    timeDisplay.textContent = `${hours}:${minutes}`;
 }
 
 function setEngine(index) {
@@ -127,6 +180,46 @@ function setupEventListeners() {
     // 点击其他地方关闭菜单
     document.addEventListener('click', () => {
         engineMenu.classList.remove('show');
+    });
+
+    // 设置按钮点击
+    settingsBtn.addEventListener('click', () => {
+        bgUpload.click();
+    });
+
+    // 清除背景按钮点击
+    clearBgBtn.addEventListener('click', () => {
+        if (confirm('确定要清除背景图片吗？')) {
+            chrome.storage.local.remove('backgroundImage', function() {
+                loadBackground();
+            });
+        }
+    });
+
+    // 背景图片上传
+    bgUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64String = event.target.result;
+                // 保存到 local storage (unlimitedStorage 权限允许保存大文件)
+                try {
+                    chrome.storage.local.set({backgroundImage: base64String}, function() {
+                        if (chrome.runtime.lastError) {
+                            console.error("Error saving background:", chrome.runtime.lastError);
+                            alert("图片太大，无法保存。请尝试较小的图片。");
+                        } else {
+                            loadBackground();
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error saving background:", error);
+                    alert("保存背景图片时出错。");
+                }
+            };
+            reader.readAsDataURL(file);
+        }
     });
 
     // 搜索功能
