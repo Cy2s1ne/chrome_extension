@@ -17,7 +17,7 @@ const engines = [
         name: 'Bing',
         url: 'https://www.bing.com/search?q=',
         icon: 'https://www.bing.com/favicon.ico',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Bing_logo_%282016%29.svg/1200px-Bing_logo_%282016%29.svg.png',
+        logo: 'images/Bing-logo.png',
         placeholder: '微软必应搜索'
     },
     {
@@ -61,22 +61,44 @@ function setEngine(index) {
     // 针对不同 logo 调整样式 (可选)
     if (currentEngine.name === 'Baidu') {
         searchLogo.style.height = 'auto';
-        searchLogo.style.width = '270px';
+        searchLogo.style.width = '260px'; // 增大百度 Logo
     } else if (currentEngine.name === 'Bing') {
         searchLogo.style.height = 'auto';
-        searchLogo.style.width = '200px';
+        searchLogo.style.width = '300px'; // 调整本地 Bing Logo 大小
     } else if (currentEngine.name === 'DuckDuckGo') {
-        searchLogo.style.height = '60px';
+        searchLogo.style.height = '80px'; // 增大 DuckDuckGo Logo
         searchLogo.style.width = 'auto';
     } else {
         // Google default
-        searchLogo.style.height = '92px';
+        // 如果是 Doodle，尺寸可能不同，这里先重置为默认，fetchDoodle 会再次调整
+        searchLogo.style.height = '110px'; // 增大 Google Logo
         searchLogo.style.width = 'auto';
     }
+    
+    updateLogoForTheme(); // 检查主题并更新 Logo
 
     // 保存选择
     chrome.storage.sync.set({selectedEngineIndex: index});
 }
+
+function updateLogoForTheme() {
+    // 简单的 Logo 适配逻辑
+    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (currentEngine.name === 'Google') {
+        if (isDarkMode) {
+            searchLogo.src = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png';
+        } else {
+            searchLogo.src = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+        }
+    } else {
+        // 其他引擎如果需要特定深色 Logo 可以在这里处理
+        searchLogo.src = currentEngine.logo;
+    }
+}
+
+// 监听系统主题变化
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateLogoForTheme);
 
 function renderMenu() {
     engineMenu.innerHTML = '';
