@@ -2,29 +2,28 @@ const engines = [
     {
         name: 'Google',
         url: 'https://www.google.com/search?q=',
-        icon: 'https://www.google.com/favicon.ico',
-        logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png',
+        icon: 'images/google-icon.ico',
+        logo: 'images/google-logo-color.png',
         placeholder: '在 Google 上搜索，或者输入一个网址'
     },
     {
         name: 'Baidu',
         url: 'https://www.baidu.com/s?wd=',
-        icon: 'https://www.baidu.com/favicon.ico',
-        logo: 'https://www.baidu.com/img/flexible/logo/pc/result.png',
+        icon: 'images/baidu-icon.ico',
+        logo: 'images/baidu-logo.png',
         placeholder: '百度一下，你就知道'
-    },
-    {
+    },    {
         name: 'Bing',
         url: 'https://www.bing.com/search?q=',
-        icon: 'https://www.bing.com/favicon.ico',
+        icon: 'images/bing-icon.ico',
         logo: 'images/Bing-logo.png',
         placeholder: '微软必应搜索'
     },
     {
         name: 'DuckDuckGo',
         url: 'https://duckduckgo.com/?q=',
-        icon: 'https://duckduckgo.com/favicon.ico',
-        logo: 'https://duckduckgo.com/assets/logo_header.v108.svg',
+        icon: 'images/duckduckgo-icon.ico',
+        logo: 'images/duckduckgo-logo.svg',
         placeholder: 'DuckDuckGo Search'
     }
 ];
@@ -140,14 +139,41 @@ function updateLogoForTheme() {
     
     if (currentEngine.name === 'Google') {
         if (isDarkMode) {
-            searchLogo.src = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png';
+            searchLogo.src = 'images/google-logo-light.png';
         } else {
-            searchLogo.src = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+            searchLogo.src = 'images/google-logo-color.png';
         }
     } else {
         // 其他引擎如果需要特定深色 Logo 可以在这里处理
         searchLogo.src = currentEngine.logo;
     }
+
+    // 更新 Favicon
+    updateFavicon(isDarkMode);
+}
+
+function updateFavicon(isDarkMode) {
+    const link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+        const newLink = document.createElement('link');
+        newLink.rel = 'icon';
+        document.head.appendChild(newLink);
+    }
+    
+    // 移除所有现有的 icon link，重新添加正确的
+    const existingLinks = document.querySelectorAll("link[rel~='icon']");
+    existingLinks.forEach(el => el.remove());
+
+    const newLink = document.createElement('link');
+    newLink.rel = 'icon';
+    newLink.type = 'image/svg';
+    
+    if (isDarkMode) {
+        newLink.href = 'icons/dark_icon16.svg';
+    } else {
+        newLink.href = 'icons/icon16.svg';
+    }
+    document.head.appendChild(newLink);
 }
 
 // 监听系统主题变化
